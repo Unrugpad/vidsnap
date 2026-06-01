@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VidSnap — Download Videos & Text to Audio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060810; --surface: #0d1117; --card: #111827;
+      --border: rgba(255,255,255,0.07); --accent: #00e5ff;
+      --accent2: #7c3aed; --accent3: #f59e0b;
+      --text: #f1f5f9; --muted: #64748b;
+      --success: #10b981; --error: #ef4444;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+    .wrapper { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
+
+    /* Nav */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 12px; }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .logo span { -webkit-text-fill-color: var(--accent3); }
+    .badge { font-size: 0.65rem; font-weight: 500; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25); color: var(--accent); padding: 3px 10px; border-radius: 99px; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* Hero - compact */
+    .hero { text-align: center; padding: 10px 0 14px; }
+    .hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.5rem, 6vw, 2.8rem); line-height: 1.15; letter-spacing: -1px; margin-bottom: 8px; }
+    .hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { color: var(--muted); font-size: 0.82rem; margin-bottom: 12px; line-height: 1.5; }
+
+    /* Platform logos - auto scrolling marquee */
+    .platforms-wrap { overflow: hidden; margin-bottom: 14px; -webkit-mask: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); mask: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); }
+    .platforms { display: flex; gap: 7px; width: max-content; animation: marquee 20s linear infinite; }
+    .platforms:hover { animation-play-state: paused; }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .platform-chip { display: flex; align-items: center; gap: 5px; padding: 5px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 99px; font-size: 0.72rem; font-weight: 500; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .platform-chip svg { width: 13px; height: 13px; }
+
+    /* Tabs */
+    .main-tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+    .main-tab { flex: 1; padding: 10px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .main-tab.active { background: var(--card); color: var(--text); }
+
+    /* Card */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent); opacity: 0.5; }
+    .tts-card::before { background: linear-gradient(90deg, transparent, var(--accent3), var(--accent2), transparent); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .input-label { font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; display: block; }
+
+    .input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .url-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); outline: none; }
+    .url-input::placeholder { color: var(--muted); }
+    .url-input:focus { border-color: var(--accent); }
+
+    .fetch-btn { background: linear-gradient(135deg, var(--accent), #00b8d4); border: none; border-radius: 10px; padding: 11px 16px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem; color: #000; cursor: pointer; white-space: nowrap; }
+    .fetch-btn:disabled { opacity: 0.5; }
+
+    /* Format grid */
+    .format-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+    .format-option { display: none; }
+    .format-label { display: flex; align-items: center; gap: 7px; padding: 9px 10px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 500; }
+    .format-option:checked + .format-label { border-color: var(--accent); background: rgba(0,229,255,0.07); color: var(--accent); }
+    .fi { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 0.8rem; flex-shrink: 0; }
+    .fi-video { background: rgba(0,229,255,0.1); }
+    .fi-sd { background: rgba(124,58,237,0.1); }
+    .fi-3gp { background: rgba(245,158,11,0.1); }
+    .fi-mp3 { background: rgba(16,185,129,0.1); }
+    .fi-m4a { background: rgba(239,68,68,0.1); }
+    .fi-webm { background: rgba(99,102,241,0.1); }
+
+    /* Preview */
+    .preview-box { display: none; gap: 12px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; }
+    .preview-box.visible { display: flex; align-items: center; }
+    .preview-thumb { width: 80px; height: 54px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+    .preview-title { font-weight: 600; font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
+    .preview-meta { font-size: 0.7rem; color: var(--muted); }
+    .preview-platform { font-size: 0.63rem; padding: 2px 7px; border-radius: 99px; background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); margin-top: 4px; display: inline-block; }
+
+    /* Buttons */
+    .action-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+    .btn-download { background: linear-gradient(135deg, var(--accent2), #9333ea); color: #fff; }
+    .btn-download:disabled { opacity: 0.5; }
+    .btn-tts { background: linear-gradient(135deg, var(--accent3), #f97316); color: #000; }
+    .btn-tts:disabled { opacity: 0.5; }
+
+    /* Progress */
+    .progress-wrap { display: none; margin-top: 12px; }
+    .progress-wrap.visible { display: block; }
+    .progress-bar-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+    .progress-bar-fill { height: 100%; width: 40%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; animation: slide 1.2s ease-in-out infinite; }
+    .progress-bar-fill.tts-bar { background: linear-gradient(90deg, var(--accent3), #f97316); }
+    @keyframes slide { 0% { transform: translateX(-150%); } 100% { transform: translateX(350%); } }
+    .progress-text { font-size: 0.72rem; color: var(--muted); text-align: center; }
+
+    /* Status */
+    .status-msg { display: none; padding: 10px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 10px; }
+    .status-msg.error { display: flex; gap: 7px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+    .status-msg.success { display: flex; gap: 7px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+
+    /* TTS */
+    .tts-textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 13px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); outline: none; resize: vertical; min-height: 130px; line-height: 1.5; margin-bottom: 6px; }
+    .tts-textarea:focus { border-color: var(--accent3); }
+    .tts-textarea.overlimit { border-color: var(--error); }
+    .char-counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .char-counter { font-size: 0.72rem; font-weight: 500; color: var(--muted); }
+    .char-counter.warn { color: var(--accent3); }
+    .char-counter.over { color: var(--error); font-weight: 700; }
+    .char-bar-track { flex: 1; height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; margin: 0 10px; }
+    .char-bar-fill { height: 100%; background: var(--success); border-radius: 99px; transition: width 0.2s, background 0.2s; }
+    .char-hint { font-size: 0.68rem; color: var(--muted); }
+    .tts-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .select-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); margin-bottom: 5px; }
+    .tts-select { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--text); outline: none; }
+    .tts-select option { background: var(--card); }
+    .audio-fmt-row { display: flex; gap: 6px; }
+    .audio-fmt-opt { display: none; }
+    .audio-fmt-label { flex: 1; text-align: center; padding: 9px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+    .audio-fmt-opt:checked + .audio-fmt-label { border-color: var(--accent3); background: rgba(245,158,11,0.08); color: var(--accent3); }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 3px; }
+    .stat-label { font-size: 0.68rem; color: var(--muted); }
+
+    footer { text-align: center; margin-top: 24px; font-size: 0.72rem; color: var(--muted); }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.25); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <nav>
+    <div class="logo">Vid<span>Snap</span></div>
+    <div class="badge">Free · Unlimited</div>
+  </nav>
+
+  <section class="hero">
+    <h1>Download Videos &<br><em>Text to Audio</em></h1>
+    <p>1000+ platforms — YouTube, TikTok, Instagram & more. Free forever.</p>
+  </section>
+
+  <div class="platforms-wrap">
+  <div class="platforms">
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#FF0000"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.52V8.48L15.86 12l-6.11 3.52z"/></svg>YouTube</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.05a8.16 8.16 0 004.77 1.52V7.12a4.85 4.85 0 01-1-.43z" fill="white"/></svg>TikTok</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#ffd600"/><stop offset="50%" stop-color="#ff0069"/><stop offset="100%" stop-color="#d300c4"/></radialGradient></defs><path fill="url(#ig)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>Instagram</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.27h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>Facebook</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Twitter/X</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#FF4500"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>Reddit</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#1AB7EA"><path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 12.4C4.603 9.816 3.834 8.516 3.01 8.516c-.179 0-.806.378-1.881 1.132L0 8.48c1.185-1.044 2.351-2.087 3.501-3.132C5.08 3.924 6.266 3.017 7.055 2.929c1.867-.18 3.016 1.1 3.447 3.838.465 2.994.786 4.855.962 5.587.536 2.432 1.125 3.648 1.767 3.648.498 0 1.243-.787 2.235-2.361 1.001-1.575 1.532-2.771 1.595-3.587.14-1.358-.395-2.038-1.595-2.038-.568 0-1.15.132-1.75.394 1.161-3.808 3.38-5.656 6.652-5.543 2.428.077 3.574 1.643 3.409 4.699z"/></svg>Vimeo</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</div>
+    <!-- Duplicate for seamless loop -->
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#FF0000"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.52V8.48L15.86 12l-6.11 3.52z"/></svg>YouTube</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.05a8.16 8.16 0 004.77 1.52V7.12a4.85 4.85 0 01-1-.43z" fill="white"/></svg>TikTok</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24"><defs><radialGradient id="ig2" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#ffd600"/><stop offset="50%" stop-color="#ff0069"/><stop offset="100%" stop-color="#d300c4"/></radialGradient></defs><path fill="url(#ig2)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>Instagram</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.27h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>Facebook</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Twitter/X</div>
+    <div class="platform-chip"><svg viewBox="0 0 24 24" fill="#FF4500"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .
