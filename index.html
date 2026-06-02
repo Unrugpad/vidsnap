@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VidSnap</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+--navy:#0a0820;--navy2:#120d2e;--card:#1a1340;
+--magenta:#d946ef;--magenta2:#e879f9;--purple:#7c3aed;--purple2:#a855f7;
+--gold:#f5b820;--text:#f1ecff;--muted:#8b80b8;--green:#22c55e;--red:#ef4444;
+}
+body{font-family:Arial,sans-serif;background:var(--navy);color:var(--text);}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px 50px;}
+.ticker{background:linear-gradient(90deg,var(--navy2),var(--card),var(--navy2));border-bottom:1px solid rgba(217,70,239,0.25);overflow:hidden;padding:9px 0;position:sticky;top:0;z-index:50;}
+.tt{display:flex;gap:30px;width:max-content;animation:tick 22s linear infinite;align-items:center;}
+.tk{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:0.8rem;}
+.tk-logo{width:20px;height:20px;border-radius:50%;flex-shrink:0;object-fit:cover;}
+.tk-sym{font-weight:800;}
+.tk-price{font-weight:700;color:#fff;}
+.tk-up{color:var(--green);font-weight:700;font-size:0.72rem;}
+.tk-down{color:var(--red);font-weight:700;font-size:0.72rem;}
+.tk-dot{color:var(--magenta);}
+@keyframes tick{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0 12px;}
+.logo{font-size:1.45rem;font-weight:900;background:linear-gradient(135deg,var(--magenta2),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo span{color:var(--gold);-webkit-text-fill-color:var(--gold);}
+.pw-top{font-size:0.6rem;letter-spacing:1.5px;color:var(--muted);margin-top:2px;}
+.pw-top b{color:var(--magenta2);font-weight:800;}
+.badge{font-size:0.62rem;background:rgba(217,70,239,0.12);border:1px solid rgba(217,70,239,0.4);color:var(--magenta2);padding:4px 11px;border-radius:99px;font-weight:700;}
+h1{font-size:1.6rem;font-weight:900;text-align:center;margin-bottom:6px;line-height:1.2;}
+h1 em{font-style:normal;background:linear-gradient(135deg,var(--magenta2),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sub{text-align:center;color:var(--muted);font-size:0.82rem;margin-bottom:14px;}
+.mwrap{overflow:hidden;margin-bottom:14px;}
+.mq{display:flex;gap:8px;width:max-content;animation:scroll 20s linear infinite;}
+@keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.chip{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--card);border:1px solid rgba(217,70,239,0.15);border-radius:99px;font-size:0.72rem;color:#b9aee8;white-space:nowrap;}
+.tabs{display:flex;gap:4px;background:var(--navy2);border:1px solid rgba(217,70,239,0.15);border-radius:12px;padding:4px;margin-bottom:12px;}
+.tab{flex:1;padding:12px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-weight:700;font-size:0.78rem;cursor:pointer;}
+.tab.active{background:var(--card);color:var(--text);}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:var(--card);border:1px solid rgba(217,70,239,0.15);border-radius:14px;padding:18px;}
+.lbl{display:block;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px;}
+.row{display:flex;gap:8px;margin-bottom:12px;}
+input[type=text],textarea,select{background:var(--navy2);border:1px solid rgba(217,70,239,0.2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.88rem;font-family:Arial,sans-serif;outline:none;width:100%;}
+textarea{resize:vertical;min-height:120px;}
+.bfetch{background:linear-gradient(135deg,var(--magenta),var(--purple));border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:0.82rem;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.fopt{display:none;}
+.flbl{display:flex;align-items:center;gap:6px;padding:8px 9px;background:var(--navy2);border:1.5px solid rgba(217,70,239,0.15);border-radius:8px;cursor:pointer;font-size:0.72rem;font-weight:600;color:#b9aee8;}
+.fopt:checked+.flbl{border-color:var(--magenta);color:var(--magenta2);background:rgba(217,70,239,0.1);}
+.prev{display:none;gap:10px;align-items:center;padding:10px;background:var(--navy2);border:1px solid rgba(217,70,239,0.15);border-radius:8px;margin-bottom:12px;}
+.prev.show{display:flex;}
+.prev img{width:80px;height:52px;object-fit:cover;border-radius:6px;flex-shrink:0;}
+.ptitle{font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pmeta{font-size:0.68rem;color:var(--muted);}
+.bdl{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--magenta));color:#fff;font-weight:700;font-size:0.9rem;cursor:pointer;}
+.btts{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),#f97316);color:#1a1340;font-weight:800;font-size:0.9rem;cursor:pointer;}
+.bdl:disabled,.btts:disabled{opacity:0.5;}
+.prog{display:none;margin-top:10px;}.prog.show{display:block;}
+.pbar{height:3px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;margin-bottom:6px;}
+.pfill{height:100%;width:40%;background:linear-gradient(90deg,var(--magenta),var(--purple));animation:sl 1.2s ease-in-out infinite;}
+.pfill.tts{background:linear-gradient(90deg,var(--gold),#f97316);}
+@keyframes sl{0%{transform:translateX(-200%);}100%{transform:translateX(350%);}}
+.ptxt{font-size:0.72rem;color:var(--muted);text-align:center;}
+.stt{display:none;padding:10px 13px;border-radius:8px;font-size:0.8rem;margin-top:10px;line-height:1.5;}
+.stt.err{display:block;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;}
+.stt.ok{display:block;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:#86efac;}
+.crow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:0.72rem;color:var(--muted);}
+.cbar{flex:1;height:3px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;margin:0 10px;}
+.cfill{height:100%;background:var(--green);transition:width 0.2s,background 0.2s;}
+.topts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.slbl{font-size:0.68rem;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.vrow{display:flex;gap:6px;}
+.vopt{display:none;}
+.vlbl{flex:1;text-align:center;padding:9px;background:var(--navy2);border:1.5px solid rgba(217,70,239,0.15);border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:700;color:var(--muted);}
+.vopt:checked+.vlbl{border-color:var(--gold);color:var(--gold);background:rgba(245,184,32,0.1);}
+.afrow{display:flex;gap:6px;}
+.afopt{display:none;}
+.aflbl{flex:1;text-align:center;padding:9px;background:var(--navy2);border:1.5px solid rgba(217,70,239,0.15);border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:700;color:var(--muted);}
+.afopt:checked+.aflbl{border-color:var(--gold);color:var(--gold);background:rgba(245,184,32,0.1);}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;}
+.stat{background:var(--card);border:1px solid rgba(217,70,239,0.15);border-radius:12px;padding:14px;text-align:center;}
+.sn{font-size:1.5rem;font-weight:900;color:var(--magenta2);}
+.sl{font-size:0.65rem;color:var(--muted);}
+.join{background:linear-gradient(160deg,var(--card),var(--navy2));border:1px solid rgba(217,70,239,0.25);border-radius:18px;padding:22px 18px;margin-top:20px;position:relative;overflow:hidden;}
+.join::before{content:'';position:absolute;top:-40%;right:-20%;width:240px;height:240px;background:radial-gradient(circle,rgba(217,70,239,0.18),transparent 70%);pointer-events:none;}
+.join h2{font-size:1.15rem;font-weight:900;margin-bottom:10px;background:linear-gradient(135deg,var(--magenta2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.join p{font-size:0.82rem;line-height:1.65;color:#cfc6ee;margin-bottom:16px;}
+.join p b{color:#fff;}
+.jbtns{display:flex;gap:10px;flex-wrap:wrap;}
+.jb{flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:11px;font-weight:800;font-size:0.85rem;text-decoration:none;}
+.jb svg{width:18px;height:18px;}
+.jb-wa{background:linear-gradient(135deg,#25D366,#1da851);color:#fff;}
+.jb-tg{background:linear-gradient(135deg,#2AABEE,#1c8dc4);color:#fff;}
+.powered{text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid rgba(217,70,239,0.15);}
+.pw-label{font-size:0.64rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;}
+.pw-brand{font-size:1.05rem;font-weight:900;margin-top:3px;background:linear-gradient(135deg,var(--magenta2),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;}
+footer{text-align:center;margin-top:14px;font-size:0.68rem;color:var(--muted);}
+footer a{color:var(--magenta2);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="ticker"><div class="tt" id="tickerTrack">
+<div class="tk"><span class="tk-sym" style="color:#a855f7">UPAD</span><span class="tk-price">loading...</span></div>
+<span class="tk-dot">&bull;</span>
+<div class="tk"><span class="tk-sym" style="color:#f5b820">BNC</span><span class="tk-price">loading...</span></div>
+</div></div>
+<div class="wrap">
+<nav><div><div class="logo">Vid<span>Snap</span></div><div class="pw-top">POWERED BY <b>UNRUGPAD</b></div></div><div class="badge">FREE &middot; UNLIMITED</div></nav>
+<h1>Download Videos &amp;<br><em>Text to Audio</em></h1>
+<p class="sub">1000+ platforms. Free forever.</p>
+<div class="mwrap"><div class="mq">
+<div class="chip">YouTube</div><div class="chip">TikTok</div><div class="chip">Instagram</div><div class="chip">Facebook</div><div class="chip">Twitter</div><div class="chip">Reddit</div><div class="chip">Vimeo</div><div class="chip">LinkedIn</div>
+<div class="chip">YouTube</div><div class="chip">TikTok</div><div class="chip">Instagram</div><div class="chip">Facebook</div><div class="chip">Twitter</div><div class="chip">Reddit</div><div class="chip">Vimeo</div><div class="chip">LinkedIn</div>
+</div></div>
+<div class="tabs">
+<button class="tab active" id="t1">Video Downloader</button>
+<button class="tab" id="t2">Text to Audio</button>
+</div>
+<div id="pv" class="panel active"><div class="card">
+<span class="lbl">Paste Video URL</span>
+<div class="row"><input type="text" id="ui" placeholder="Paste link here..."/><button class="bfetch" id="fb">Fetch</button></div>
+<div class="prev" id="pb"><img id="pt" src="" alt=""/><div style="flex:1;min-width:0"><div class="ptitle" id="ptl"></div><div class="pmeta" id="pm"></div></div></div>
+<span class="lbl">Choose Format</span>
+<div class="fgrid">
+<input type="radio" name="fmt" id="f1" value="mp4_hd" class="fopt" checked><label for="f1" class="flbl">MP4 HD</label>
+<input type="radio" name="fmt" id="f2" value="mp4_sd" class="fopt"><label for="f2" class="flbl">MP4 SD</label>
+<input type="radio" name="fmt" id="f3" value="3gp" class="fopt"><label for="f3" class="flbl">3GP</label>
+<input type="radio" name="fmt" id="f4" value="mp3" class="fopt"><label for="f4" class="flbl">MP3</label>
+<input type="radio" name="fmt" id="f5" value="m4a" class="fopt"><label for="f5" class="flbl">M4A</label>
+<input type="radio" name="fmt" id="f6" value="webm" class="fopt"><label for="f6" class="flbl">WEBM</label>
+</div>
+<button class="bdl" id="db">Download</button>
+<div class="prog" id="vp"><div class="pbar"><div class="pfill"></div></div><div class="ptxt">Processing... please wait</div></div>
+<div class="stt" id="vs"></div>
+</div></div>
+<div id="pt2" class="panel"><div class="card">
+<span class="lbl">Enter Text (max 3000 chars)</span>
+<textarea id="tx" placeholder="Type or paste text here..."></textarea>
+<div class="crow"><span id="ct">0 / 3000</span><div class="cbar"><div class="cfill" id="cf" style="width:0%"></div></div><span id="ch"></span></div>
+<div class="topts">
+<div><p class="slbl">Voice</p><div class="vrow">
+<input type="radio" name="vo" id="v1" value="male" class="vopt" checked><label for="v1" class="vlbl">Male</label>
+<input type="radio" name="vo" id="v2" value="female" class="vopt"><label for="v2" class="vlbl">Female</label>
+</div></div>
+<div><p class="slbl">Format</p><div class="afrow">
+<input type="radio" name="af" id="a1" value="mp3" class="afopt" checked><label for="a1" class="aflbl">MP3</label>
+<input type="radio" name="af" id="a2" value="wav" class="afopt"><label for="a2" class="aflbl">WAV</label>
+</div></div>
+</div>
+<p class="slbl">Language</p>
+<select id="tl" style="margin-bottom:12px">
+<option value="en">English (US)</option>
+<option value="en-GB">English (UK)</option>
+<option value="en-NG">English (Nigeria)</option>
+<option value="fr">French</option>
+<option value="es">Spanish</option>
+<option value="de">German</option>
+<option value="pt">Portuguese</option>
+<option value="ar">Arabic</option>
+<option value="hi">Hindi</option>
+</select>
+<button class="btts" id="tb">Convert to Audio</button>
+<div class="prog" id="tp"><div class="pbar"><div class="pfill tts"></div></div><div class="ptxt">Converting... please wait</div></div>
+<div class="stt" id="ts"></div>
+</div></div>
+<div class="stats">
+<div class="stat"><div class="sn">1000+</div><div class="sl">Platforms</div></div>
+<div class="stat"><div class="sn">6</div><div class="sl">Formats</div></div>
+<div class="stat"><div class="sn">Free</div><div class="sl">Forever</div></div>
+</div>
+<div class="join">
+<h2>Join the Unrugpad Community</h2>
+<p>Get access to our <b>Digital Academy</b>, a <b>Global E-Commerce Marketplace</b> with factory prices, and a premium <b>Signal Group</b>. We also have a Utility Token, <b>Unrugpad (UPAD)</b>, and an Ecosystem Token, <b>Bullnance (BNC)</b>. Join now to stay updated and be the first to know when we release a new app.</p>
+<div class="jbtns">
+<a href="https://whatsapp.com/channel/0029VbCIn4GFsn0bZgzNXG2v" target="_blank" class="jb jb-wa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.5-.7-2.5-1.3-3.5-3-.3-.5.3-.4.8-1.4.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2z"/></svg>WhatsApp Channel</a>
+<a href="https://t.me/unrugpadofficial" target="_blank" class="jb jb-tg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3l-3.3 15.6c-.2 1.1-.9 1.4-1.9.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.5l-4.9-1.5c-1.1-.3-1.1-1 .2-1.5l19-7.3c.9-.3 1.7.2 1.4 1.6z"/></svg>Telegram Channel</a>
+</div>
+</div>
+<div class="powered"><div class="pw-label">POWERED BY</div><div class="pw-brand">UNRUGPAD</div></div>
+<footer><p>VidSnap &mdash; Powered by yt-dlp &amp; Edge-TTS. For personal use only.</p></footer>
+</div>
+<script>
+var MAX=3000;
+var g=function(id){return document.getElementById(id);};
+function showTab(t){g('t1').className=(t==='video')?'tab active':'tab';g('t2').className=(t==='tts')?'tab active':'tab';g('pv').className=(t==='video')?'panel active':'panel';g('pt2').className=(t==='tts')?'panel active':'panel';}
+function setStatus(id,type,msg){var e=g(id);e.className='stt '+(type==='error'?'err':'ok');e.innerHTML=msg;}
+function fmtDur(s){if(!s)return'';var m=Math.floor(s/60);var x=s%60;return m+':'+(x<10?'0':'')+x;}
+function loadPrices(){
+  fetch('/api/prices').then(function(r){return r.json();}).then(function(d){
+    var html='';
+    function tk(sym,color,p){
+      var price=p&&p.price?('$'+Number(p.price).toPrecision(4)):'N/A';
+      var ch=p&&p.change!=null?p.change:null;
+      var chHtml='';
+      if(ch!=null){var up=ch>=0;chHtml='<span class="'+(up?'tk-up':'tk-down')+'">'+(up?'\u25B2 ':'\u25BC ')+Math.abs(ch).toFixed(1)+'%</span>';}
+      return '<div class="tk"><span class="tk-sym" style="color:'+color+'">'+sym+'</span><span class="tk-price">'+price+'</span>'+chHtml+'</div><span class="tk-dot">&bull;</span>';
+    }
+    var one=tk('UPAD','#a855f7',d.upad)+tk('BNC','#f5b820',d.bnc);
+    g('tickerTrack').innerHTML=one+one+one+one;
+  }).catch(function(){});
+}
+function doFetch(){
+  var url=g('ui').value.trim();
+  if(!url){setStatus('vs','error','Please enter a URL.');return;}
+  var btn=g('fb');btn.disabled=true;btn.textContent='...';g('vs').className='stt';
+  fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})})
+  .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d};});})
+  .then(function(res){
+    if(!res.ok)throw new Error(res.d.error||'Failed');
+    g('pt').src=res.d.thumbnail||'';g('ptl').textContent=res.d.title||'Untitled';
+    g('pm').textContent=[res.d.uploader,fmtDur(res.d.duration)].filter(Boolean).join(' \u00b7 ');
+    g('pb').className='prev show';
+    setStatus('vs','ok','\u2713 Video found! Choose a format and download.');
+  }).catch(function(e){setStatus('vs','error','\u26A0 '+e.message);})
+  .then(function(){btn.disabled=false;btn.textContent='Fetch';});
+}
+function doDownload(){
+  var url=g('ui').value.trim();
+  if(!url){setStatus('vs','error','Please enter a URL.');return;}
+  var fmt=document.querySelector('input[name="fmt"]:checked').value;
+  var btn=g('db');btn.disabled=true;btn.textContent='Downloading...';
+  g('vp').className='prog show';g('vs').className='stt';
+  fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url,format:fmt})})
+  .then(function(r){
+    if(!r.ok)return r.json().then(function(d){throw new Error(d.error||'Failed');});
+    var name='download';var disp=r.headers.get('Content-Disposition')||'';
+    var m=disp.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if(m)name=decodeURIComponent(m[1].replace(/['"]/g,''));
+    return r.blob().then(function(blob){return{blob:blob,name:name};});
+  }).then(function(res){
+    var a=document.createElement('a');a.href=URL.createObjectURL(res.blob);a.download=res.name;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setStatus('vs','ok','\u2713 Downloaded: '+res.name);
+  }).catch(function(e){setStatus('vs','error','\u26A0 '+e.message);})
+  .then(function(){g('vp').className='prog';btn.disabled=false;btn.textContent='Download';});
+}
+function doTTS(){
+  var text=g('tx').value.trim();var lang=g('tl').value;
+  var fmt=document.querySelector('input[name="af"]:checked').value;
+  var voice=document.querySelector('input[name="vo"]:checked').value;
+  if(!text){setStatus('ts','error','Please enter some text.');return;}
+  if(text.length>MAX){setStatus('ts','error','Text is over the 3000 limit.');return;}
+  var btn=g('tb');btn.disabled=true;btn.textContent='Converting...';
+  g('tp').className='prog show';g('ts').className='stt';
+  fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,lang:lang,format:fmt,voice:voice})})
+  .then(function(r){
+    if(!r.ok)return r.json().then(function(d){throw new Error(d.error||'Failed');});
+    return r.blob();
+  }).then(function(blob){
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='audio.'+fmt;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setStatus('ts','ok','\u2713 Audio downloaded!');
+  }).catch(function(e){setStatus('ts','error','\u26A0 '+e.message);})
+  .then(function(){g('tp').className='prog';btn.disabled=false;btn.textContent='Convert to Audio';});
+}
+function updateChar(){var l=g('tx').value.length;var p=Math.min(l/MAX*100,100);g('ct').textContent=l+' / '+MAX;var f=g('cf');f.style.width=p+'%';f.style.background=l>MAX?'#ef4444':(l>2500?'#f5b820':'#22c55e');g('ch').textContent=l>MAX?'Over!':(l>2500?(MAX-l)+' left':'');}
+g('t1').addEventListener('click',function(){showTab('video');});
+g('t2').addEventListener('click',function(){showTab('tts');});
+g('fb').addEventListener('click',doFetch);
+g('db').addEventListener('click',doDownload);
+g('tb').addEventListener('click',doTTS);
+g('tx').addEventListener('input',updateChar);
+g('ui').addEventListener('keydown',function(e){if(e.key==='Enter')doFetch();});
+loadPrices();
+setInterval(loadPrices,60000);
+</script>
+</body>
+</html>
