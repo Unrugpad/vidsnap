@@ -4,6 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>VidSnap</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#d946ef">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VidSnap">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -99,6 +105,16 @@ textarea{resize:vertical;min-height:120px;}
 .pw-brand{font-size:1.05rem;font-weight:900;margin-top:3px;background:linear-gradient(135deg,var(--magenta2),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;}
 footer{text-align:center;margin-top:14px;font-size:0.68rem;color:var(--muted);}
 footer a{color:var(--magenta2);text-decoration:none;}
+
+/* Install banner */
+.install-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,var(--card),var(--navy2));border-top:1px solid rgba(217,70,239,0.3);padding:14px 16px;z-index:999;align-items:center;gap:10px;}
+.install-banner.show{display:flex;}
+.ib-icon{width:40px;height:40px;border-radius:10px;flex-shrink:0;}
+.ib-text{flex:1;}
+.ib-title{font-size:0.85rem;font-weight:800;color:var(--text);}
+.ib-sub{font-size:0.7rem;color:var(--muted);}
+.ib-btn{background:linear-gradient(135deg,var(--magenta),var(--purple));border:none;border-radius:8px;padding:9px 14px;color:#fff;font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;}
+.ib-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -133,7 +149,7 @@ footer a{color:var(--magenta2);text-decoration:none;}
 <input type="radio" name="fmt" id="f6" value="webm" class="fopt"><label for="f6" class="flbl">WEBM</label>
 </div>
 <button class="bdl" id="db">Download</button>
-<div class="prog" id="vp"><div class="pbar"><div class="pfill"></div></div><div class="ptxt">Processing... please wait</div></div>
+<div class="prog" id="vp"><div class="pbar"><div class="pfill"></div></div><div class="ptxt" id="dlMsg">Starting download... please wait, this may take 30-60 seconds</div></div>
 <div class="stt" id="vs"></div>
 </div></div>
 <div id="pt2" class="panel"><div class="card">
@@ -266,6 +282,69 @@ g('tx').addEventListener('input',updateChar);
 g('ui').addEventListener('keydown',function(e){if(e.key==='Enter')doFetch();});
 loadPrices();
 setInterval(loadPrices,60000);
+
+// PWA Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+
+// Install banner logic
+var deferredPrompt=null;
+var installBanner=null;
+var installBtn=null;
+var installClose=null;
+document.addEventListener('DOMContentLoaded',function(){
+  installBanner=g('installBanner');
+  installBtn=g('installBtn');
+  installClose=g('installClose');
+  if(installBtn) installBtn.addEventListener('click',function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r){
+        if(r.outcome==='accepted'){installBanner.classList.remove('show');}
+        deferredPrompt=null;
+      });
+    } else {
+      alert('To install VidSnap:\n\n1. Tap the Share button in your browser\n2. Tap "Add to Home Screen"\n3. Tap "Add"\n\nVidSnap will appear on your home screen!');
+      installBanner.classList.remove('show');
+    }
+  });
+  if(installClose) installClose.addEventListener('click',function(){
+    installBanner.classList.remove('show');
+    localStorage.setItem('installDismissed', Date.now().toString());
+  });
+});
+
+// Check if already installed or dismissed recently
+var lastDismissed=localStorage.getItem('installDismissed');
+var isInstalled=window.matchMedia('(display-mode: standalone)').matches;
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  // Show banner if not installed and not dismissed in last 3 days
+  if(!isInstalled){
+    var now=Date.now();
+    var dismissed=lastDismissed?parseInt(lastDismissed):0;
+    if(now-dismissed > 3*24*60*60*1000){
+      setTimeout(function(){installBanner.classList.add('show');},3000);
+    }
+  }
+});
+
+// listeners moved to DOMContentLoaded above
 </script>
+
+<div class="install-banner" id="installBanner">
+  <img src="/icon-192.png" class="ib-icon" alt="VidSnap"/>
+  <div class="ib-text">
+    <div class="ib-title">📲 Install VidSnap</div>
+    <div class="ib-sub">Add to home screen for faster access — free forever!</div>
+  </div>
+  <button class="ib-btn" id="installBtn">Install</button>
+  <button class="ib-close" id="installClose">&times;</button>
+</div>
 </body>
 </html>
