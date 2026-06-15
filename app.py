@@ -189,6 +189,26 @@ def tts():
         return jsonify({'error':'Audio conversion failed. Please try again.'}),400
 
 
+
+@app.route('/sitemap.xml')
+def sitemap():
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://vidsnap.xyz/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>"""
+    return app.response_class(xml, mimetype='application/xml')
+
+@app.route('/robots.txt')
+def robots():
+    txt = """User-agent: *
+Allow: /
+Sitemap: https://vidsnap.xyz/sitemap.xml"""
+    return app.response_class(txt, mimetype='text/plain')
+
 @app.route('/manifest.json')
 def manifest():
     return jsonify({
