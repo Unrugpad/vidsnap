@@ -206,6 +206,8 @@ def sitemap():
 def robots():
     txt = """User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /tmp/
 Sitemap: https://vidsnap.xyz/sitemap.xml"""
     return app.response_class(txt, mimetype='text/plain')
 
