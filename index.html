@@ -297,14 +297,8 @@ function updateChar(){var l=g('tx').value.length;var p=Math.min(l/MAX*100,100);g
 g('t1').addEventListener('click',function(){showTab('video');});
 g('t2').addEventListener('click',function(){showTab('tts');});
 g('fb').addEventListener('click',doFetch);
-g('db').addEventListener('click',function(){
-  var _a=document.createElement('a');_a.href='https://www.effectivecpmnetwork.com/yq9z30337?key=1b3fafae51c034e9119817d0ec16d83c';_a.target='_blank';_a.rel='noopener';document.body.appendChild(_a);_a.click();document.body.removeChild(_a);
-  doDownload();
-});
-g('tb').addEventListener('click',function(){
-  var _a=document.createElement('a');_a.href='https://www.effectivecpmnetwork.com/yq9z30337?key=1b3fafae51c034e9119817d0ec16d83c';_a.target='_blank';_a.rel='noopener';document.body.appendChild(_a);_a.click();document.body.removeChild(_a);
-  doTTS();
-});
+g('db').addEventListener('click',doDownload);
+g('tb').addEventListener('click',doTTS);
 g('tx').addEventListener('input',updateChar);
 g('ui').addEventListener('keydown',function(e){if(e.key==='Enter')doFetch();});
 loadPrices();
